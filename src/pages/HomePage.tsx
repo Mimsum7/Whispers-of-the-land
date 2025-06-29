@@ -55,6 +55,7 @@ const HomePage: React.FC = () => {
     if (filters.search) {
       filtered = filtered.filter(story =>
         story.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        story.title_english.toLowerCase().includes(filters.search.toLowerCase()) ||
         story.contributor.toLowerCase().includes(filters.search.toLowerCase()) ||
         story.native_text.toLowerCase().includes(filters.search.toLowerCase()) ||
         story.english_text.toLowerCase().includes(filters.search.toLowerCase())
@@ -136,7 +137,8 @@ const HomePage: React.FC = () => {
 const sampleStories: Story[] = [
   {
     id: '1',
-    title: 'Anansi and the Wisdom of the World',
+    title: 'Kweku Anansi ne Nyansa',
+    title_english: 'Anansi and the Wisdom of the World',
     country: 'Ghana',
     language: 'Twi',
     theme: 'Wisdom',
@@ -151,7 +153,8 @@ const sampleStories: Story[] = [
   },
   {
     id: '2',
-    title: 'The Hare and the Hyena',
+    title: 'Tsuro neBere',
+    title_english: 'The Hare and the Hyena',
     country: 'Zimbabwe',
     language: 'Shona',
     theme: 'Tricksters',
@@ -166,7 +169,8 @@ const sampleStories: Story[] = [
   },
   {
     id: '3',
-    title: 'Why the Sun and Moon Live in the Sky',
+    title: 'Idi ti Oorun ati Osupa wa si Oju Ọrun',
+    title_english: 'Why the Sun and Moon Live in the Sky',
     country: 'Nigeria',
     language: 'Yoruba',
     theme: 'Origin Myths',
