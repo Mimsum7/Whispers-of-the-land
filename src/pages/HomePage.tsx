@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Sparkles } from 'lucide-react';
+import { BookOpen, Sparkles, AlertCircle } from 'lucide-react';
 import StoryCard from '../components/Story/StoryCard';
 import FilterPanel from '../components/Story/FilterPanel';
 import { Story, FilterOptions } from '../types';
@@ -9,6 +9,7 @@ const HomePage: React.FC = () => {
   const [stories, setStories] = useState<Story[]>([]);
   const [filteredStories, setFilteredStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<FilterOptions>({
     language: '',
     country: '',
@@ -27,6 +28,8 @@ const HomePage: React.FC = () => {
   const fetchStories = async () => {
     try {
       console.log('Fetching approved stories...');
+      setError(null);
+      
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -40,9 +43,16 @@ const HomePage: React.FC = () => {
       
       console.log('Fetched stories:', data);
       setStories(data || []);
-    } catch (error) {
+      
+      // If no stories found, use sample data for demo
+      if (!data || data.length === 0) {
+        console.log('No approved stories found, using sample data');
+        setStories(sampleStories);
+      }
+    } catch (error: any) {
       console.error('Error fetching stories:', error);
-      // Use sample data for demo
+      setError(`Failed to load stories: ${error.message}`);
+      // Use sample data as fallback
       setStories(sampleStories);
     } finally {
       setLoading(false);
@@ -83,6 +93,31 @@ const HomePage: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-ochre-500 mx-auto mb-4"></div>
           <p className="text-forest-600">Loading stories...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-african-pattern">
+        <div className="container mx-auto px-4 py-8">
+          <div className="max-w-md mx-auto">
+            <div className="bg-clay-100 border border-clay-300 rounded-lg p-8 text-center">
+              <AlertCircle className="h-16 w-16 text-clay-500 mx-auto mb-4" />
+              <h2 className="text-xl font-bold text-forest-700 mb-2">Connection Issue</h2>
+              <p className="text-forest-600 mb-4">{error}</p>
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  fetchStories();
+                }}
+                className="bg-ochre-500 hover:bg-ochre-600 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
