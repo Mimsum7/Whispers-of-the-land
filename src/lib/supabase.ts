@@ -3,38 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
-}
-
-// Create the initial client
-let supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-});
-
-// Function to recreate the Supabase client (effectively reconnecting)
-export const reconnectSupabase = () => {
-  console.log('Reconnecting to Supabase...');
-  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true
-    }
-  });
-  console.log('Supabase client recreated');
-  return supabaseClient;
-};
-
-// Export the client
-export const supabase = supabaseClient;
-
-// Function to get the current client (useful after reconnection)
-export const getSupabaseClient = () => supabaseClient;
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export interface Story {
   id: string;

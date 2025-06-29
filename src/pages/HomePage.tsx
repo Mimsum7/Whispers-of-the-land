@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { BookOpen, Sparkles, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Sparkles } from 'lucide-react';
 import StoryCard from '../components/Story/StoryCard';
 import FilterPanel from '../components/Story/FilterPanel';
 import { Story, FilterOptions } from '../types';
@@ -9,8 +9,6 @@ const HomePage: React.FC = () => {
   const [stories, setStories] = useState<Story[]>([]);
   const [filteredStories, setFilteredStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   const [filters, setFilters] = useState<FilterOptions>({
     language: '',
     country: '',
@@ -18,12 +16,17 @@ const HomePage: React.FC = () => {
     search: ''
   });
 
-  const fetchStories = useCallback(async () => {
+  useEffect(() => {
+    fetchStories();
+  }, []);
+
+  useEffect(() => {
+    filterStories();
+  }, [stories, filters]);
+
+  const fetchStories = async () => {
     try {
-      console.log('Fetching approved stories... (attempt:', retryCount + 1, ')');
-      setLoading(true);
-      setError(null);
-      
+      console.log('Fetching approved stories...');
       const { data, error } = await supabase
         .from('stories')
         .select('*')
@@ -32,42 +35,21 @@ const HomePage: React.FC = () => {
 
       if (error) {
         console.error('Supabase error:', error);
-        throw new Error(`Failed to fetch stories: ${error.message}`);
+        throw error;
       }
       
       console.log('Fetched stories:', data);
-      console.log('Number of stories:', data?.length || 0);
-      
-      if (data && data.length > 0) {
-        setStories(data);
-        console.log('Using real stories from database');
-      } else {
-        console.log('No approved stories found, using sample data');
-        setStories(sampleStories);
-      }
-      
-    } catch (error: any) {
+      setStories(data || []);
+    } catch (error) {
       console.error('Error fetching stories:', error);
-      setError(error.message || 'Failed to load stories');
-      // Use sample data as fallback
-      console.log('Using sample data as fallback');
+      // Use sample data for demo
       setStories(sampleStories);
     } finally {
       setLoading(false);
     }
-  }, [retryCount]);
+  };
 
-  // Initial fetch
-  useEffect(() => {
-    fetchStories();
-  }, [fetchStories]);
-
-  // Filter stories whenever stories or filters change
-  useEffect(() => {
-    filterStories();
-  }, [stories, filters]);
-
-  const filterStories = useCallback(() => {
+  const filterStories = () => {
     let filtered = stories;
 
     if (filters.search) {
@@ -93,20 +75,14 @@ const HomePage: React.FC = () => {
     }
 
     setFilteredStories(filtered);
-  }, [stories, filters]);
-
-  const handleRetry = () => {
-    setRetryCount(prev => prev + 1);
   };
 
-  // Show loading only on initial load
-  if (loading && stories.length === 0 && retryCount === 0) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-ochre-500 mx-auto mb-4"></div>
           <p className="text-forest-600">Loading stories...</p>
-          <p className="text-sm text-forest-500 mt-2">Connecting to database...</p>
         </div>
       </div>
     );
@@ -128,20 +104,6 @@ const HomePage: React.FC = () => {
             Discover the rich tapestry of African storytelling through our digital collection 
             of folklore, myths, and legends in their original languages alongside English translations.
           </p>
-          {error && (
-            <div className="mt-4 text-sm text-clay-600 bg-clay-50 border border-clay-200 rounded-lg p-3 max-w-md mx-auto">
-              <div className="flex items-center justify-center space-x-2">
-                <AlertCircle className="h-4 w-4" />
-                <span>Currently showing sample stories due to database connection issues</span>
-              </div>
-              <button
-                onClick={handleRetry}
-                className="mt-2 text-ochre-600 hover:text-ochre-700 underline text-xs"
-              >
-                Try reconnecting
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Filter Panel */}
@@ -154,7 +116,7 @@ const HomePage: React.FC = () => {
           ))}
         </div>
 
-        {filteredStories.length === 0 && !loading && (
+        {filteredStories.length === 0 && (
           <div className="text-center py-16">
             <BookOpen className="h-16 w-16 text-ochre-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-forest-600 mb-2">No stories found</h3>
