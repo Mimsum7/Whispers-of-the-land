@@ -28,7 +28,23 @@ const HomePage: React.FC = () => {
   const fetchStories = async () => {
     try {
       console.log('Fetching approved stories...');
+      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
+      console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
+      
       setError(null);
+      
+      // Test the connection first
+      const { data: testData, error: testError } = await supabase
+        .from('stories')
+        .select('count(*)')
+        .limit(1);
+      
+      if (testError) {
+        console.error('Connection test failed:', testError);
+        throw new Error(`Database connection failed: ${testError.message}`);
+      }
+      
+      console.log('Connection test successful, fetching stories...');
       
       const { data, error } = await supabase
         .from('stories')
@@ -38,21 +54,24 @@ const HomePage: React.FC = () => {
 
       if (error) {
         console.error('Supabase error:', error);
-        throw error;
+        throw new Error(`Failed to fetch stories: ${error.message}`);
       }
       
       console.log('Fetched stories:', data);
-      setStories(data || []);
+      console.log('Number of stories:', data?.length || 0);
       
-      // If no stories found, use sample data for demo
-      if (!data || data.length === 0) {
+      if (data && data.length > 0) {
+        setStories(data);
+      } else {
         console.log('No approved stories found, using sample data');
         setStories(sampleStories);
       }
+      
     } catch (error: any) {
       console.error('Error fetching stories:', error);
-      setError(`Failed to load stories: ${error.message}`);
+      setError(error.message || 'Failed to load stories');
       // Use sample data as fallback
+      console.log('Using sample data as fallback');
       setStories(sampleStories);
     } finally {
       setLoading(false);
@@ -93,6 +112,7 @@ const HomePage: React.FC = () => {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-ochre-500 mx-auto mb-4"></div>
           <p className="text-forest-600">Loading stories...</p>
+          <p className="text-sm text-forest-500 mt-2">Connecting to database...</p>
         </div>
       </div>
     );
@@ -106,10 +126,14 @@ const HomePage: React.FC = () => {
             <div className="bg-clay-100 border border-clay-300 rounded-lg p-8 text-center">
               <AlertCircle className="h-16 w-16 text-clay-500 mx-auto mb-4" />
               <h2 className="text-xl font-bold text-forest-700 mb-2">Connection Issue</h2>
-              <p className="text-forest-600 mb-4">{error}</p>
+              <p className="text-forest-600 mb-4 text-sm">{error}</p>
+              <p className="text-forest-500 mb-4 text-xs">
+                Don't worry - we're showing sample stories below while we fix the connection.
+              </p>
               <button
                 onClick={() => {
                   setLoading(true);
+                  setError(null);
                   fetchStories();
                 }}
                 className="bg-ochre-500 hover:bg-ochre-600 text-white px-4 py-2 rounded-lg transition-colors"
@@ -139,6 +163,11 @@ const HomePage: React.FC = () => {
             Discover the rich tapestry of African storytelling through our digital collection 
             of folklore, myths, and legends in their original languages alongside English translations.
           </p>
+          {error && (
+            <div className="mt-4 text-sm text-clay-600 bg-clay-50 border border-clay-200 rounded-lg p-3 max-w-md mx-auto">
+              <p>⚠️ Currently showing sample stories due to database connection issues</p>
+            </div>
+          )}
         </div>
 
         {/* Filter Panel */}
