@@ -5,6 +5,7 @@ import Footer from './components/Layout/Footer';
 import HomePage from './pages/HomePage';
 import StoryPage from './pages/StoryPage';
 import SubmitStoryPage from './pages/SubmitStoryPage';
+import AdminPage from './pages/AdminPage';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/story/:id" element={<StoryPage />} />
             <Route path="/submit" element={<SubmitStoryPage />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </main>
         <Footer />

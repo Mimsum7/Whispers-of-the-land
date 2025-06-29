@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, PlusCircle, Home, Menu, X } from 'lucide-react';
+import { BookOpen, PlusCircle, Home, Users, Menu, X } from 'lucide-react';
 
 const Header: React.FC = () => {
   const location = useLocation();
@@ -9,6 +9,7 @@ const Header: React.FC = () => {
   const navItems = [
     { path: '/', label: 'Library', icon: Home },
     { path: '/submit', label: 'Submit Story', icon: PlusCircle },
+    { path: '/admin', label: 'Admin', icon: Users },
   ];
 
   return (
