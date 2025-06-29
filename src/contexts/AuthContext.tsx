@@ -38,45 +38,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session
-    const getInitialSession = async () => {
+    const initializeAuth = async () => {
       try {
+        console.log('Initializing auth...');
+        
+        // Get initial session
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
-          return;
         }
 
         if (mounted) {
+          console.log('Initial session:', session?.user?.email || 'No session');
           setSession(session);
           setUser(session?.user ?? null);
           
           if (session?.user) {
             await fetchProfile(session.user.id);
-          } else {
-            setLoading(false);
           }
+          
+          setInitialized(true);
+          setLoading(false);
         }
       } catch (error) {
-        console.error('Error in getInitialSession:', error);
+        console.error('Error in initializeAuth:', error);
         if (mounted) {
+          setInitialized(true);
           setLoading(false);
         }
       }
     };
 
-    getInitialSession();
+    initializeAuth();
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
+      console.log('Auth state changed:', event, session?.user?.email || 'No user');
       
       if (mounted) {
         setSession(session);
@@ -86,6 +91,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           await fetchProfile(session.user.id);
         } else {
           setProfile(null);
+        }
+        
+        if (initialized) {
           setLoading(false);
         }
       }
@@ -95,11 +103,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [initialized]);
 
   const fetchProfile = async (userId: string) => {
     try {
       console.log('Fetching profile for user:', userId);
+      
+      // Add a small delay to ensure the trigger has time to create the profile
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       const { data, error } = await supabase
         .from('profiles')
@@ -110,17 +121,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         console.error('Error fetching profile:', error);
         
-        // If profile doesn't exist, create one
+        // If profile doesn't exist, try to create one
         if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating one...');
-          const user = await supabase.auth.getUser();
-          if (user.data.user) {
+          console.log('Profile not found, attempting to create...');
+          
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData.user) {
             const { data: newProfile, error: createError } = await supabase
               .from('profiles')
               .insert({
                 id: userId,
-                email: user.data.user.email || '',
-                full_name: user.data.user.user_metadata?.full_name || '',
+                email: userData.user.email || '',
+                full_name: userData.user.user_metadata?.full_name || '',
                 role: 'user'
               })
               .select()
@@ -128,20 +140,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (createError) {
               console.error('Error creating profile:', createError);
+              // Set a default profile to prevent infinite loading
+              setProfile({
+                id: userId,
+                email: userData.user.email || '',
+                full_name: userData.user.user_metadata?.full_name || '',
+                role: 'user',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
             } else {
-              console.log('Profile created:', newProfile);
+              console.log('Profile created successfully:', newProfile);
               setProfile(newProfile);
             }
           }
+        } else {
+          // For other errors, set a default profile
+          const { data: userData } = await supabase.auth.getUser();
+          if (userData.user) {
+            setProfile({
+              id: userId,
+              email: userData.user.email || '',
+              full_name: userData.user.user_metadata?.full_name || '',
+              role: 'user',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          }
         }
       } else {
-        console.log('Profile fetched:', data);
+        console.log('Profile fetched successfully:', data);
         setProfile(data);
       }
     } catch (error) {
       console.error('Error in fetchProfile:', error);
-    } finally {
-      setLoading(false);
+      // Set a fallback profile to prevent infinite loading
+      const { data: userData } = await supabase.auth.getUser();
+      if (userData.user) {
+        setProfile({
+          id: userId,
+          email: userData.user.email || '',
+          full_name: userData.user.user_metadata?.full_name || '',
+          role: 'user',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
     }
   };
 
@@ -201,6 +245,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAdmin = profile?.role === 'admin';
+
+  // Debug logging
+  console.log('Auth Context State:', {
+    user: user?.email,
+    profile: profile?.email,
+    role: profile?.role,
+    isAdmin,
+    loading,
+    initialized
+  });
 
   const value = {
     user,

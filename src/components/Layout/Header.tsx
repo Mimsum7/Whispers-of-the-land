@@ -24,7 +24,7 @@ const Header: React.FC = () => {
   };
 
   // Debug logging
-  console.log('Header render - User:', user?.email, 'Profile:', profile, 'IsAdmin:', isAdmin, 'Loading:', loading);
+  console.log('Header render - User:', user?.email, 'Profile:', profile?.email, 'IsAdmin:', isAdmin, 'Loading:', loading);
 
   return (
     <header className="bg-forest-600 text-cream-50 shadow-lg">
