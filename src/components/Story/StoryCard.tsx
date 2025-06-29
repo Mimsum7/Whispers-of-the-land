@@ -23,9 +23,14 @@ const StoryCard: React.FC<StoryCardProps> = ({ story }) => {
             </div>
           )}
           
-          <h3 className="text-xl font-bold text-forest-700 mb-3 font-serif group-hover:text-forest-600 transition-colors">
-            {story.title}
-          </h3>
+          <div className="mb-3">
+            <h3 className="text-xl font-bold text-forest-700 mb-1 font-serif group-hover:text-forest-600 transition-colors">
+              {story.title}
+            </h3>
+            <p className="text-sm text-forest-600 italic">
+              {story.title_english}
+            </p>
+          </div>
           
           <div className="space-y-2 mb-4 flex-grow">
             <div className="flex items-center text-sm text-forest-600">

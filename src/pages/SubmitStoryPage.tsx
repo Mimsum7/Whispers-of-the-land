@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 
 interface FormData {
   title: string;
+  title_english: string;
   country: string;
   language: string;
   theme: string;
@@ -18,6 +19,7 @@ interface FormData {
 const SubmitStoryPage: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     title: '',
+    title_english: '',
     country: '',
     language: '',
     theme: '',
@@ -97,6 +99,7 @@ const SubmitStoryPage: React.FC = () => {
       // Reset form
       setFormData({
         title: '',
+        title_english: '',
         country: '',
         language: '',
         theme: '',
@@ -160,11 +163,11 @@ const SubmitStoryPage: React.FC = () => {
 
           <PatternBorder>
             <form onSubmit={handleSubmit} className="p-8 space-y-6">
-              {/* Basic Information */}
+              {/* Story Titles */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">
-                    Story Title *
+                    Story Title (Native Language) *
                   </label>
                   <input
                     type="text"
@@ -173,10 +176,28 @@ const SubmitStoryPage: React.FC = () => {
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-3 border border-ochre-300 rounded-lg focus:ring-2 focus:ring-ochre-400 focus:border-transparent"
-                    placeholder="Enter the story title"
+                    placeholder="Enter the story title in native language"
                   />
                 </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-forest-700 mb-2">
+                    Story Title (English) *
+                  </label>
+                  <input
+                    type="text"
+                    name="title_english"
+                    value={formData.title_english}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-ochre-300 rounded-lg focus:ring-2 focus:ring-ochre-400 focus:border-transparent"
+                    placeholder="Enter the English translation of the title"
+                  />
+                </div>
+              </div>
+
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-forest-700 mb-2">
                     <MapPin className="inline h-4 w-4 mr-1" />

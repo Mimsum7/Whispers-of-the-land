@@ -1,6 +1,7 @@
 export interface Story {
   id: string;
   title: string;
+  title_english: string;
   country: string;
   language: string;
   theme: string;

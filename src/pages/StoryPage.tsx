@@ -32,7 +32,8 @@ const StoryPage: React.FC = () => {
       // Use sample data for demo
       const sampleStory = {
         id: storyId,
-        title: 'Anansi and the Wisdom of the World',
+        title: 'Kweku Anansi ne Nyansa',
+        title_english: 'Anansi and the Wisdom of the World',
         country: 'Ghana',
         language: 'Twi',
         theme: 'Wisdom',
@@ -123,9 +124,14 @@ From that time on, all people have some wisdom.`,
 
         {/* Story Header */}
         <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-forest-700 mb-6 font-serif">
-            {story.title}
-          </h1>
+          <div className="mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-forest-700 mb-2 font-serif">
+              {story.title}
+            </h1>
+            <p className="text-2xl md:text-3xl text-forest-600 italic font-serif">
+              {story.title_english}
+            </p>
+          </div>
 
           <div className="flex flex-wrap gap-6 text-forest-600 mb-6">
             <div className="flex items-center">
@@ -172,7 +178,7 @@ From that time on, all people have some wisdom.`,
             {story.english_audio_url && (
               <AudioPlayer
                 audioUrl={story.english_audio_url}
-                title={story.title}
+                title={story.title_english}
                 language="English"
               />
             )}
@@ -186,6 +192,9 @@ From that time on, all people have some wisdom.`,
               <h2 className="text-2xl font-bold text-forest-700 mb-4 font-serif">
                 {story.language} Original
               </h2>
+              <h3 className="text-lg font-semibold text-forest-600 mb-4 italic">
+                {story.title}
+              </h3>
               <div className="prose prose-lg text-forest-600 leading-relaxed whitespace-pre-line">
                 {story.native_text}
               </div>
@@ -197,6 +206,9 @@ From that time on, all people have some wisdom.`,
               <h2 className="text-2xl font-bold text-forest-700 mb-4 font-serif">
                 English Translation
               </h2>
+              <h3 className="text-lg font-semibold text-forest-600 mb-4 italic">
+                {story.title_english}
+              </h3>
               <div className="prose prose-lg text-forest-600 leading-relaxed whitespace-pre-line">
                 {story.english_text}
               </div>

@@ -135,9 +135,14 @@ const AdminPage: React.FC = () => {
                 <PatternBorder key={story.id}>
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-lg font-bold text-forest-700 font-serif">
-                        {story.title}
-                      </h3>
+                      <div>
+                        <h3 className="text-lg font-bold text-forest-700 font-serif">
+                          {story.title}
+                        </h3>
+                        <p className="text-sm text-forest-600 italic">
+                          {story.title_english}
+                        </p>
+                      </div>
                       <button
                         onClick={() => setSelectedStory(story)}
                         className="text-ochre-600 hover:text-ochre-700 transition-colors"
@@ -191,9 +196,14 @@ const AdminPage: React.FC = () => {
               {selectedStory ? (
                 <PatternBorder>
                   <div className="p-6">
-                    <h2 className="text-2xl font-bold text-forest-700 mb-4 font-serif">
-                      {selectedStory.title}
-                    </h2>
+                    <div className="mb-4">
+                      <h2 className="text-2xl font-bold text-forest-700 mb-1 font-serif">
+                        {selectedStory.title}
+                      </h2>
+                      <p className="text-lg text-forest-600 italic">
+                        {selectedStory.title_english}
+                      </p>
+                    </div>
 
                     {selectedStory.illustration_url && (
                       <div className="mb-4 rounded-lg overflow-hidden">
@@ -265,7 +275,8 @@ const AdminPage: React.FC = () => {
 const samplePendingStories: Story[] = [
   {
     id: 'pending-1',
-    title: 'The Clever Tortoise',
+    title: 'Mbe Nwere Amamihe',
+    title_english: 'The Clever Tortoise',
     country: 'Nigeria',
     language: 'Igbo',
     theme: 'Wisdom',
@@ -279,7 +290,8 @@ const samplePendingStories: Story[] = [
   },
   {
     id: 'pending-2',
-    title: 'The Rainbow Bird',
+    title: 'Ndege wa Upinde wa Mvua',
+    title_english: 'The Rainbow Bird',
     country: 'Kenya',
     language: 'Swahili',
     theme: 'Nature',
