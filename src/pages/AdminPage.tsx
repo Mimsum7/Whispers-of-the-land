@@ -15,13 +15,19 @@ const AdminPage: React.FC = () => {
 
   const fetchPendingStories = async () => {
     try {
+      console.log('Fetching pending stories...');
       const { data, error } = await supabase
         .from('stories')
         .select('*')
         .eq('is_approved', false)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched pending stories:', data);
       setPendingStories(data || []);
     } catch (error) {
       console.error('Error fetching pending stories:', error);
@@ -34,33 +40,45 @@ const AdminPage: React.FC = () => {
 
   const handleApprove = async (storyId: string) => {
     try {
+      console.log('Approving story:', storyId);
       const { error } = await supabase
         .from('stories')
         .update({ is_approved: true })
         .eq('id', storyId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error approving story:', error);
+        throw error;
+      }
 
+      console.log('Story approved successfully');
       setPendingStories(prev => prev.filter(story => story.id !== storyId));
       setSelectedStory(null);
     } catch (error) {
       console.error('Error approving story:', error);
+      alert('Error approving story. Please try again.');
     }
   };
 
   const handleReject = async (storyId: string) => {
     try {
+      console.log('Rejecting story:', storyId);
       const { error } = await supabase
         .from('stories')
         .delete()
         .eq('id', storyId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error rejecting story:', error);
+        throw error;
+      }
 
+      console.log('Story rejected successfully');
       setPendingStories(prev => prev.filter(story => story.id !== storyId));
       setSelectedStory(null);
     } catch (error) {
       console.error('Error rejecting story:', error);
+      alert('Error rejecting story. Please try again.');
     }
   };
 

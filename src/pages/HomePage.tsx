@@ -26,13 +26,19 @@ const HomePage: React.FC = () => {
 
   const fetchStories = async () => {
     try {
+      console.log('Fetching approved stories...');
       const { data, error } = await supabase
         .from('stories')
         .select('*')
         .eq('is_approved', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Fetched stories:', data);
       setStories(data || []);
     } catch (error) {
       console.error('Error fetching stories:', error);
@@ -113,7 +119,12 @@ const HomePage: React.FC = () => {
           <div className="text-center py-16">
             <BookOpen className="h-16 w-16 text-ochre-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-forest-600 mb-2">No stories found</h3>
-            <p className="text-forest-500">Try adjusting your filters or search terms.</p>
+            <p className="text-forest-500">
+              {stories.length === 0 
+                ? "No approved stories yet. Be the first to submit a story!" 
+                : "Try adjusting your filters or search terms."
+              }
+            </p>
           </div>
         )}
       </div>
