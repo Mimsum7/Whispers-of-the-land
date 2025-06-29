@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, reconnectSupabase } from '../lib/supabase';
 
 interface Profile {
   id: string;
@@ -21,6 +21,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>;
+  reconnect: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,40 +41,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
 
+  const initializeAuth = async () => {
+    try {
+      console.log('Initializing auth...');
+      setLoading(true);
+      
+      // Get initial session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+      }
+
+      console.log('Initial session:', session?.user?.email || 'No session');
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        await fetchProfile(session.user.id);
+      }
+      
+      setInitialized(true);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error in initializeAuth:', error);
+      setInitialized(true);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
-
-    const initializeAuth = async () => {
-      try {
-        console.log('Initializing auth...');
-        
-        // Get initial session
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Error getting session:', error);
-        }
-
-        if (mounted) {
-          console.log('Initial session:', session?.user?.email || 'No session');
-          setSession(session);
-          setUser(session?.user ?? null);
-          
-          if (session?.user) {
-            await fetchProfile(session.user.id);
-          }
-          
-          setInitialized(true);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error in initializeAuth:', error);
-        if (mounted) {
-          setInitialized(true);
-          setLoading(false);
-        }
-      }
-    };
 
     initializeAuth();
 
@@ -189,6 +187,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const reconnect = async () => {
+    console.log('Reconnecting to Supabase...');
+    setLoading(true);
+    
+    try {
+      // Recreate the Supabase client
+      reconnectSupabase();
+      
+      // Wait a moment for the connection to establish
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Reinitialize auth
+      await initializeAuth();
+      
+      console.log('Reconnection complete');
+    } catch (error) {
+      console.error('Error during reconnection:', error);
+      setLoading(false);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
@@ -266,6 +285,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     updateProfile,
+    reconnect,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

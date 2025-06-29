@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, PlusCircle, Users, Home, LogOut, User, Menu, X } from 'lucide-react';
+import { BookOpen, PlusCircle, Users, Home, LogOut, User, Menu, X, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const location = useLocation();
-  const { user, profile, isAdmin, signOut, loading } = useAuth();
+  const { user, profile, isAdmin, signOut, loading, reconnect } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
 
   const navItems = [
     { path: '/', label: 'Library', icon: Home, public: true },
@@ -21,6 +22,17 @@ const Header: React.FC = () => {
   const handleSignOut = async () => {
     await signOut();
     setMobileMenuOpen(false);
+  };
+
+  const handleReconnect = async () => {
+    setReconnecting(true);
+    try {
+      await reconnect();
+    } catch (error) {
+      console.error('Reconnection failed:', error);
+    } finally {
+      setReconnecting(false);
+    }
   };
 
   // Debug logging
@@ -68,6 +80,17 @@ const Header: React.FC = () => {
                     {loading && <span className="ml-1 text-cream-400">(Loading...)</span>}
                   </span>
                 </div>
+                
+                {/* Reconnect Button */}
+                <button
+                  onClick={handleReconnect}
+                  disabled={reconnecting}
+                  className="flex items-center space-x-1 text-cream-200 hover:text-cream-100 transition-colors disabled:opacity-50"
+                  title="Reconnect to Supabase"
+                >
+                  <RefreshCw className={`h-4 w-4 ${reconnecting ? 'animate-spin' : ''}`} />
+                </button>
+                
                 <button
                   onClick={handleSignOut}
                   className="flex items-center space-x-1 text-cream-200 hover:text-cream-100 transition-colors"
@@ -131,6 +154,16 @@ const Header: React.FC = () => {
                         {isAdmin && <span className="ml-1 text-ochre-300 font-semibold">(Admin)</span>}
                       </span>
                     </div>
+                    
+                    <button
+                      onClick={handleReconnect}
+                      disabled={reconnecting}
+                      className="flex items-center space-x-2 px-4 py-3 text-cream-200 hover:text-cream-100 hover:bg-forest-500 rounded-lg transition-colors w-full text-left disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-4 w-4 ${reconnecting ? 'animate-spin' : ''}`} />
+                      <span>{reconnecting ? 'Reconnecting...' : 'Reconnect'}</span>
+                    </button>
+                    
                     <button
                       onClick={handleSignOut}
                       className="flex items-center space-x-2 px-4 py-3 text-cream-200 hover:text-cream-100 hover:bg-forest-500 rounded-lg transition-colors w-full text-left"

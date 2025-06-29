@@ -7,13 +7,34 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase environment variables');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Create the initial client
+let supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
   }
 });
+
+// Function to recreate the Supabase client (effectively reconnecting)
+export const reconnectSupabase = () => {
+  console.log('Reconnecting to Supabase...');
+  supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    }
+  });
+  console.log('Supabase client recreated');
+  return supabaseClient;
+};
+
+// Export the client
+export const supabase = supabaseClient;
+
+// Function to get the current client (useful after reconnection)
+export const getSupabaseClient = () => supabaseClient;
 
 export interface Story {
   id: string;
