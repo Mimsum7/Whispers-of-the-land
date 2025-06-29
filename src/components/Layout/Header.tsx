@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const location = useLocation();
-  const { user, profile, isAdmin, signOut } = useAuth();
+  const { user, profile, isAdmin, signOut, loading } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -22,6 +22,9 @@ const Header: React.FC = () => {
     await signOut();
     setMobileMenuOpen(false);
   };
+
+  // Debug logging
+  console.log('Header render - User:', user?.email, 'Profile:', profile, 'IsAdmin:', isAdmin, 'Loading:', loading);
 
   return (
     <header className="bg-forest-600 text-cream-50 shadow-lg">
@@ -61,7 +64,8 @@ const Header: React.FC = () => {
                   <User className="h-4 w-4" />
                   <span className="text-sm">
                     {profile?.full_name || user.email}
-                    {isAdmin && <span className="ml-1 text-ochre-300">(Admin)</span>}
+                    {isAdmin && <span className="ml-1 text-ochre-300 font-semibold">(Admin)</span>}
+                    {loading && <span className="ml-1 text-cream-400">(Loading...)</span>}
                   </span>
                 </div>
                 <button
@@ -124,7 +128,7 @@ const Header: React.FC = () => {
                       <User className="h-4 w-4" />
                       <span className="text-sm">
                         {profile?.full_name || user.email}
-                        {isAdmin && <span className="ml-1 text-ochre-300">(Admin)</span>}
+                        {isAdmin && <span className="ml-1 text-ochre-300 font-semibold">(Admin)</span>}
                       </span>
                     </div>
                     <button

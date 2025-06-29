@@ -19,26 +19,10 @@ const HomePage: React.FC = () => {
   });
 
   const fetchStories = useCallback(async () => {
-    // Prevent multiple simultaneous requests
-    if (loading && retryCount === 0) return;
-    
     try {
       console.log('Fetching approved stories... (attempt:', retryCount + 1, ')');
       setLoading(true);
       setError(null);
-      
-      // Test the connection first
-      const { data: testData, error: testError } = await supabase
-        .from('stories')
-        .select('count(*)')
-        .limit(1);
-      
-      if (testError) {
-        console.error('Connection test failed:', testError);
-        throw new Error(`Database connection failed: ${testError.message}`);
-      }
-      
-      console.log('Connection test successful, fetching stories...');
       
       const { data, error } = await supabase
         .from('stories')
@@ -71,7 +55,7 @@ const HomePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [retryCount]); // Only depend on retryCount
+  }, [retryCount]);
 
   // Initial fetch
   useEffect(() => {
@@ -115,7 +99,8 @@ const HomePage: React.FC = () => {
     setRetryCount(prev => prev + 1);
   };
 
-  if (loading && stories.length === 0) {
+  // Show loading only on initial load
+  if (loading && stories.length === 0 && retryCount === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
