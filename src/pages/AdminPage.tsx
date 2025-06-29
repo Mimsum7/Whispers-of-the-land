@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, XCircle, Eye, Calendar, User, ExternalLink, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PatternBorder from '../components/Common/PatternBorder';
@@ -12,19 +12,20 @@ const AdminPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const { profile, user } = useAuth();
 
-  useEffect(() => {
-    fetchPendingStories();
-  }, []);
-
-  const fetchPendingStories = async () => {
+  const fetchPendingStories = useCallback(async () => {
+    // Prevent multiple simultaneous requests
+    if (loading && retryCount === 0) return;
+    
     try {
-      console.log('Fetching pending stories...');
+      console.log('Fetching pending stories... (attempt:', retryCount + 1, ')');
       console.log('Current user:', user);
       console.log('Current profile:', profile);
       console.log('Is admin:', profile?.role === 'admin');
       
+      setLoading(true);
       setError(null);
       
       // Test the connection first
@@ -60,7 +61,14 @@ const AdminPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [retryCount, user, profile]); // Include user and profile in dependencies
+
+  useEffect(() => {
+    // Only fetch if user is loaded
+    if (user !== undefined) {
+      fetchPendingStories();
+    }
+  }, [fetchPendingStories, user]);
 
   const handleApprove = async (storyId: string) => {
     setActionLoading(storyId);
@@ -116,6 +124,10 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -126,7 +138,7 @@ const AdminPage: React.FC = () => {
     });
   };
 
-  if (loading) {
+  if (loading && pendingStories.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -149,11 +161,7 @@ const AdminPage: React.FC = () => {
               <p className="text-forest-600 mb-4 text-sm">{error}</p>
               <div className="space-y-2">
                 <button
-                  onClick={() => {
-                    setLoading(true);
-                    setError(null);
-                    fetchPendingStories();
-                  }}
+                  onClick={handleRetry}
                   className="bg-ochre-500 hover:bg-ochre-600 text-white px-4 py-2 rounded-lg transition-colors w-full"
                 >
                   Try Again

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BookOpen, Sparkles, AlertCircle } from 'lucide-react';
 import StoryCard from '../components/Story/StoryCard';
 import FilterPanel from '../components/Story/FilterPanel';
@@ -10,6 +10,7 @@ const HomePage: React.FC = () => {
   const [filteredStories, setFilteredStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
   const [filters, setFilters] = useState<FilterOptions>({
     language: '',
     country: '',
@@ -17,20 +18,13 @@ const HomePage: React.FC = () => {
     search: ''
   });
 
-  useEffect(() => {
-    fetchStories();
-  }, []);
-
-  useEffect(() => {
-    filterStories();
-  }, [stories, filters]);
-
-  const fetchStories = async () => {
+  const fetchStories = useCallback(async () => {
+    // Prevent multiple simultaneous requests
+    if (loading && retryCount === 0) return;
+    
     try {
-      console.log('Fetching approved stories...');
-      console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
-      console.log('Supabase Key exists:', !!import.meta.env.VITE_SUPABASE_ANON_KEY);
-      
+      console.log('Fetching approved stories... (attempt:', retryCount + 1, ')');
+      setLoading(true);
       setError(null);
       
       // Test the connection first
@@ -62,6 +56,7 @@ const HomePage: React.FC = () => {
       
       if (data && data.length > 0) {
         setStories(data);
+        console.log('Using real stories from database');
       } else {
         console.log('No approved stories found, using sample data');
         setStories(sampleStories);
@@ -76,9 +71,19 @@ const HomePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [retryCount]); // Only depend on retryCount
 
-  const filterStories = () => {
+  // Initial fetch
+  useEffect(() => {
+    fetchStories();
+  }, [fetchStories]);
+
+  // Filter stories whenever stories or filters change
+  useEffect(() => {
+    filterStories();
+  }, [stories, filters]);
+
+  const filterStories = useCallback(() => {
     let filtered = stories;
 
     if (filters.search) {
@@ -104,44 +109,19 @@ const HomePage: React.FC = () => {
     }
 
     setFilteredStories(filtered);
+  }, [stories, filters]);
+
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
   };
 
-  if (loading) {
+  if (loading && stories.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-ochre-500 mx-auto mb-4"></div>
           <p className="text-forest-600">Loading stories...</p>
           <p className="text-sm text-forest-500 mt-2">Connecting to database...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-african-pattern">
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-md mx-auto">
-            <div className="bg-clay-100 border border-clay-300 rounded-lg p-8 text-center">
-              <AlertCircle className="h-16 w-16 text-clay-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-forest-700 mb-2">Connection Issue</h2>
-              <p className="text-forest-600 mb-4 text-sm">{error}</p>
-              <p className="text-forest-500 mb-4 text-xs">
-                Don't worry - we're showing sample stories below while we fix the connection.
-              </p>
-              <button
-                onClick={() => {
-                  setLoading(true);
-                  setError(null);
-                  fetchStories();
-                }}
-                className="bg-ochre-500 hover:bg-ochre-600 text-white px-4 py-2 rounded-lg transition-colors"
-              >
-                Try Again
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -165,7 +145,16 @@ const HomePage: React.FC = () => {
           </p>
           {error && (
             <div className="mt-4 text-sm text-clay-600 bg-clay-50 border border-clay-200 rounded-lg p-3 max-w-md mx-auto">
-              <p>⚠️ Currently showing sample stories due to database connection issues</p>
+              <div className="flex items-center justify-center space-x-2">
+                <AlertCircle className="h-4 w-4" />
+                <span>Currently showing sample stories due to database connection issues</span>
+              </div>
+              <button
+                onClick={handleRetry}
+                className="mt-2 text-ochre-600 hover:text-ochre-700 underline text-xs"
+              >
+                Try reconnecting
+              </button>
             </div>
           )}
         </div>
@@ -180,7 +169,7 @@ const HomePage: React.FC = () => {
           ))}
         </div>
 
-        {filteredStories.length === 0 && (
+        {filteredStories.length === 0 && !loading && (
           <div className="text-center py-16">
             <BookOpen className="h-16 w-16 text-ochre-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-forest-600 mb-2">No stories found</h3>
