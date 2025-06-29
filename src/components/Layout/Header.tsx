@@ -1,15 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BookOpen, PlusCircle, Users, Home } from 'lucide-react';
+import { BookOpen, PlusCircle, Users, Home, LogOut, User, Menu, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header: React.FC = () => {
   const location = useLocation();
+  const { user, profile, isAdmin, signOut } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { path: '/', label: 'Library', icon: Home },
-    { path: '/submit', label: 'Submit Story', icon: PlusCircle },
-    { path: '/admin', label: 'Admin', icon: Users },
+    { path: '/', label: 'Library', icon: Home, public: true },
+    { path: '/submit', label: 'Submit Story', icon: PlusCircle, public: true },
+    { path: '/admin', label: 'Admin', icon: Users, adminOnly: true },
   ];
+
+  const visibleNavItems = navItems.filter(item => 
+    item.public || (item.adminOnly && isAdmin)
+  );
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="bg-forest-600 text-cream-50 shadow-lg">
@@ -25,8 +37,9 @@ const Header: React.FC = () => {
             </div>
           </Link>
 
-          <nav className="hidden md:flex space-x-6">
-            {navItems.map(({ path, label, icon: Icon }) => (
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-6">
+            {visibleNavItems.map(({ path, label, icon: Icon }) => (
               <Link
                 key={path}
                 to={path}
@@ -40,16 +53,102 @@ const Header: React.FC = () => {
                 <span>{label}</span>
               </Link>
             ))}
+
+            {/* User Menu */}
+            {user ? (
+              <div className="flex items-center space-x-4 ml-4 pl-4 border-l border-forest-500">
+                <div className="flex items-center space-x-2 text-cream-200">
+                  <User className="h-4 w-4" />
+                  <span className="text-sm">
+                    {profile?.full_name || user.email}
+                    {isAdmin && <span className="ml-1 text-ochre-300">(Admin)</span>}
+                  </span>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center space-x-1 text-cream-200 hover:text-cream-100 transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/auth"
+                className="flex items-center space-x-2 px-4 py-2 bg-ochre-500 hover:bg-ochre-600 text-forest-800 rounded-lg transition-colors font-medium"
+              >
+                <User className="h-4 w-4" />
+                <span>Sign In</span>
+              </Link>
+            )}
           </nav>
 
-          <div className="md:hidden">
-            <button className="text-cream-100 hover:text-ochre-300 transition-colors">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          </div>
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden text-cream-100 hover:text-ochre-300 transition-colors"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-forest-500">
+            <nav className="flex flex-col space-y-2 mt-4">
+              {visibleNavItems.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    location.pathname === path
+                      ? 'bg-ochre-500 text-forest-800 font-semibold'
+                      : 'hover:bg-forest-500 text-cream-100'
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{label}</span>
+                </Link>
+              ))}
+
+              {/* Mobile User Menu */}
+              <div className="pt-4 border-t border-forest-500 mt-4">
+                {user ? (
+                  <>
+                    <div className="flex items-center space-x-2 px-4 py-2 text-cream-200">
+                      <User className="h-4 w-4" />
+                      <span className="text-sm">
+                        {profile?.full_name || user.email}
+                        {isAdmin && <span className="ml-1 text-ochre-300">(Admin)</span>}
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center space-x-2 px-4 py-3 text-cream-200 hover:text-cream-100 hover:bg-forest-500 rounded-lg transition-colors w-full text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/auth"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center space-x-2 px-4 py-3 bg-ochre-500 hover:bg-ochre-600 text-forest-800 rounded-lg transition-colors font-medium"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Sign In</span>
+                  </Link>
+                )}
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );
