@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MapPin, Globe, Tag, User, Calendar, Volume2 } from 'lucide-react';
 import AudioPlayer from '../components/Story/AudioPlayer';
+import ElevenLabsAudioGenerator from '../components/Story/ElevenLabsAudioGenerator';
 import PatternBorder from '../components/Common/PatternBorder';
 import { Story } from '../types';
 import { supabase } from '../lib/supabase';
@@ -67,7 +68,7 @@ From that time on, all people have some wisdom.`,
         contributor_email: 'akosua@example.com',
         illustration_url: 'https://images.pexels.com/photos/6969141/pexels-photo-6969141.jpeg',
         native_audio_url: '/audio/anansi-twi.mp3',
-        english_audio_url: '/audio/anansi-english.mp3',
+        english_audio_url: null, // No English audio initially
         is_approved: true,
         created_at: '2024-01-15T10:00:00Z',
         updated_at: '2024-01-15T10:00:00Z'
@@ -75,6 +76,12 @@ From that time on, all people have some wisdom.`,
       setStory(sampleStory);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAudioGenerated = (audioUrl: string) => {
+    if (story) {
+      setStory({ ...story, english_audio_url: audioUrl });
     }
   };
 
@@ -162,28 +169,37 @@ From that time on, all people have some wisdom.`,
         </div>
 
         {/* Audio Players */}
-        {(story.native_audio_url || story.english_audio_url) && (
-          <div className="mb-8 space-y-4">
-            <h2 className="text-2xl font-bold text-forest-700 mb-4 flex items-center">
-              <Volume2 className="h-6 w-6 mr-2 text-ochre-500" />
-              Audio Narrations
-            </h2>
-            {story.native_audio_url && (
-              <AudioPlayer
-                audioUrl={story.native_audio_url}
-                title={story.title}
-                language={story.language}
-              />
-            )}
-            {story.english_audio_url && (
-              <AudioPlayer
-                audioUrl={story.english_audio_url}
-                title={story.title_english}
-                language="English"
-              />
-            )}
-          </div>
-        )}
+        <div className="mb-8 space-y-4">
+          <h2 className="text-2xl font-bold text-forest-700 mb-4 flex items-center">
+            <Volume2 className="h-6 w-6 mr-2 text-ochre-500" />
+            Audio Narrations
+          </h2>
+          
+          {/* Native Audio */}
+          {story.native_audio_url && (
+            <AudioPlayer
+              audioUrl={story.native_audio_url}
+              title={story.title}
+              language={story.language}
+            />
+          )}
+          
+          {/* English Audio or Generator */}
+          {story.english_audio_url ? (
+            <AudioPlayer
+              audioUrl={story.english_audio_url}
+              title={story.title_english}
+              language="English"
+            />
+          ) : (
+            <ElevenLabsAudioGenerator
+              storyId={story.id}
+              englishText={story.english_text}
+              englishTitle={story.title_english}
+              onAudioGenerated={handleAudioGenerated}
+            />
+          )}
+        </div>
 
         {/* Story Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">

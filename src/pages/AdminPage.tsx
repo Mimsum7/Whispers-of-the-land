@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Eye, Calendar, User, ExternalLink, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Calendar, User, ExternalLink, AlertCircle, Volume2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PatternBorder from '../components/Common/PatternBorder';
+import ElevenLabsAudioGenerator from '../components/Story/ElevenLabsAudioGenerator';
 import { Story } from '../types';
 import { supabase } from '../lib/supabase';
 
@@ -116,6 +117,21 @@ const AdminPage: React.FC = () => {
 
   const handleRetry = () => {
     fetchPendingStories();
+  };
+
+  const handleAudioGenerated = (storyId: string, audioUrl: string) => {
+    // Update the story in both pending stories and selected story
+    setPendingStories(prev => 
+      prev.map(story => 
+        story.id === storyId 
+          ? { ...story, english_audio_url: audioUrl }
+          : story
+      )
+    );
+    
+    if (selectedStory && selectedStory.id === storyId) {
+      setSelectedStory({ ...selectedStory, english_audio_url: audioUrl });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -241,6 +257,12 @@ const AdminPage: React.FC = () => {
                           {story.theme}
                         </span>
                       </div>
+                      {story.english_audio_url && (
+                        <div className="flex items-center">
+                          <Volume2 className="h-4 w-4 mr-2 text-ochre-500" />
+                          <span className="text-xs text-ochre-700">AI Audio Generated</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex space-x-2 mt-4">
@@ -308,6 +330,16 @@ const AdminPage: React.FC = () => {
                       </div>
                     )}
 
+                    {/* AI Audio Generation */}
+                    <div className="mb-6">
+                      <ElevenLabsAudioGenerator
+                        storyId={selectedStory.id}
+                        englishText={selectedStory.english_text}
+                        englishTitle={selectedStory.title_english}
+                        onAudioGenerated={(audioUrl) => handleAudioGenerated(selectedStory.id, audioUrl)}
+                      />
+                    </div>
+
                     <div className="space-y-4 mb-6">
                       <div>
                         <h3 className="font-medium text-forest-700 mb-2">
@@ -337,7 +369,7 @@ const AdminPage: React.FC = () => {
                               <p className="text-sm text-forest-600">✓ Native audio available</p>
                             )}
                             {selectedStory.english_audio_url && (
-                              <p className="text-sm text-forest-600">✓ English audio available</p>
+                              <p className="text-sm text-forest-600">✓ English AI audio generated</p>
                             )}
                           </div>
                         </div>
@@ -398,7 +430,7 @@ const samplePendingStories: Story[] = [
     language: 'Swahili',
     theme: 'Tricksters',
     native_text: 'Hapo zamani za kale, kulikuwa na sungura mjanja sana. Siku moja alikutana na fisi mkali...',
-    english_text: 'Long ago, there was a very clever rabbit. One day he met a fierce hyena...',
+    english_text: 'Long ago, there was a very clever rabbit. One day he met a fierce hyena who was known throughout the land for his strength and cunning. The rabbit, being small but wise, knew he had to use his wits to survive this encounter.',
     contributor: 'Amina Hassan',
     contributor_email: 'amina@example.com',
     illustration_url: 'https://images.pexels.com/photos/8828528/pexels-photo-8828528.jpeg',
@@ -414,7 +446,7 @@ const samplePendingStories: Story[] = [
     language: 'Yoruba',
     theme: 'Heroic Tales',
     native_text: 'Ni ilu kan, ọmọ ọba kan wa ti o ni agbara nla...',
-    english_text: 'In a certain kingdom, there was a prince who had great power...',
+    english_text: 'In a certain kingdom, there was a prince who had great power and wisdom beyond his years. The people loved him dearly, for he was just and kind to all who sought his help. One day, a great fish appeared in the royal lake, and with it came both wonder and danger to the kingdom.',
     contributor: 'Folake Adebayo',
     contributor_email: 'folake@example.com',
     is_approved: false,
