@@ -32,8 +32,8 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="mt-8 pt-6 border-t border-forest-600">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <p className="flex items-center justify-center space-x-2 text-cream-300 mb-4 md:mb-0">
+          <div className="flex flex-col md:flex-row items-center justify-center md:justify-between relative">
+            <p className="flex items-center justify-center space-x-2 text-cream-300 mb-4 md:mb-0 md:absolute md:left-1/2 md:transform md:-translate-x-1/2">
               <span>Made with</span>
               <Heart className="h-4 w-4 text-clay-400 fill-current" />
               <span>for African storytelling heritage</span>
@@ -43,12 +43,12 @@ const Footer: React.FC = () => {
               href="https://bolt.new/"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-transform duration-200 hover:scale-105"
+              className="transition-transform duration-200 hover:scale-105 md:ml-auto"
             >
               <img
                 src="/bolt badge.png"
                 alt="Powered by Bolt.new"
-                className="h-12 w-auto opacity-90 hover:opacity-100 transition-opacity duration-200"
+                className="h-16 w-auto opacity-90 hover:opacity-100 transition-opacity duration-200"
               />
             </a>
           </div>
