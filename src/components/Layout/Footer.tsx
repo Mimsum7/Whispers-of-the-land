@@ -31,13 +31,27 @@ const Footer: React.FC = () => {
           </div>
         </div>
         
-        <div className="mt-8 pt-6 border-t border-forest-600 text-center">
-          <p className="flex items-center justify-center space-x-2 text-cream-300">
-            <span>Made with</span>
-            <Heart className="h-4 w-4 text-clay-400 fill-current" />
-            <span>for African storytelling heritage</span>
-            <p>z</p>
-          </p>
+        <div className="mt-8 pt-6 border-t border-forest-600">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <p className="flex items-center justify-center space-x-2 text-cream-300 mb-4 md:mb-0">
+              <span>Made with</span>
+              <Heart className="h-4 w-4 text-clay-400 fill-current" />
+              <span>for African storytelling heritage</span>
+            </p>
+            
+            <a
+              href="https://bolt.new/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-transform duration-200 hover:scale-105"
+            >
+              <img
+                src="/bolt badge.png"
+                alt="Powered by Bolt.new"
+                className="h-12 w-auto opacity-90 hover:opacity-100 transition-opacity duration-200"
+              />
+            </a>
+          </div>
         </div>
       </div>
     </footer>
