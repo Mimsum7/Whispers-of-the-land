@@ -36,6 +36,7 @@ const Footer: React.FC = () => {
             <span>Made with</span>
             <Heart className="h-4 w-4 text-clay-400 fill-current" />
             <span>for African storytelling heritage</span>
+            <p>z</p>
           </p>
         </div>
       </div>
