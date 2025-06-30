@@ -27,19 +27,30 @@ class ElevenLabsService {
   private baseUrl = 'https://api.elevenlabs.io/v1';
 
   constructor() {
-    // Debug environment variables
-    console.log('ElevenLabs Environment Check:', {
+    // Enhanced debug environment variables
+    console.log('=== ElevenLabs Environment Debug ===');
+    console.log('All environment variables:', import.meta.env);
+    console.log('ElevenLabs specific vars:', {
+      VITE_ELEVENLABS_API_KEY: import.meta.env.VITE_ELEVENLABS_API_KEY,
+      VITE_ELEVENLABS_VOICE_ID: import.meta.env.VITE_ELEVENLABS_VOICE_ID,
       hasApiKey: !!import.meta.env.VITE_ELEVENLABS_API_KEY,
       apiKeyLength: import.meta.env.VITE_ELEVENLABS_API_KEY?.length || 0,
-      voiceId: import.meta.env.VITE_ELEVENLABS_VOICE_ID || 'default',
-      allEnvVars: Object.keys(import.meta.env).filter(key => key.includes('ELEVEN'))
+      apiKeyFirstChars: import.meta.env.VITE_ELEVENLABS_API_KEY?.substring(0, 10) || 'none'
     });
+    console.log('All env keys containing ELEVEN:', Object.keys(import.meta.env).filter(key => key.includes('ELEVEN')));
+    console.log('All env keys starting with VITE_:', Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')));
 
     this.config = {
       apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY || '',
       voiceId: import.meta.env.VITE_ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL', // Default: Bella (storytelling voice)
       model: 'eleven_multilingual_v2'
     };
+
+    console.log('Final config:', {
+      hasApiKey: !!this.config.apiKey,
+      apiKeyLength: this.config.apiKey.length,
+      voiceId: this.config.voiceId
+    });
   }
 
   private getHeaders(): HeadersInit {
