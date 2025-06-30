@@ -27,6 +27,14 @@ class ElevenLabsService {
   private baseUrl = 'https://api.elevenlabs.io/v1';
 
   constructor() {
+    // Debug environment variables
+    console.log('ElevenLabs Environment Check:', {
+      hasApiKey: !!import.meta.env.VITE_ELEVENLABS_API_KEY,
+      apiKeyLength: import.meta.env.VITE_ELEVENLABS_API_KEY?.length || 0,
+      voiceId: import.meta.env.VITE_ELEVENLABS_VOICE_ID || 'default',
+      allEnvVars: Object.keys(import.meta.env).filter(key => key.includes('ELEVEN'))
+    });
+
     this.config = {
       apiKey: import.meta.env.VITE_ELEVENLABS_API_KEY || '',
       voiceId: import.meta.env.VITE_ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL', // Default: Bella (storytelling voice)
@@ -165,7 +173,9 @@ class ElevenLabsService {
 
   // Check if service is configured
   isConfigured(): boolean {
-    return !!this.config.apiKey;
+    const configured = !!this.config.apiKey;
+    console.log('ElevenLabs isConfigured:', configured, 'API Key length:', this.config.apiKey.length);
+    return configured;
   }
 
   // Get current configuration
